@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd-sts
+  namespace: micro-svc
+
+spec:
+  serviceName: etcd-svc
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etcd-sts
+
+  template:
+    metadata:
+      labels:
+        app: etcd-sts
+    spec:
+      containers:
+        - name: etcd
+          image: bitnami/etcd:3.4.28
+
+          env:
+            - name: ALLOW_NONE_AUTHENTICATION
+              value: "yes"
+
+            - name: ETCD_ROOT_PASSWORD
+              value: ""
+
+          ports:
+            - containerPort: 2379
+              protocol: TCP
+            - containerPort: 2380
+              protocol: TCP
+
+          volumeMounts:
+            - name: etcd-100m-pvc
+              mountPath: /bitnami/etcd/data
+
+  volumeClaimTemplates:
+    - metadata:
+        name: etcd-100m-pvc
+      spec:
+        accessModes:
+          - ReadWriteMany
+        storageClassName: nfs-client
+        resources:
+          requests:
+            storage: 100Mi
